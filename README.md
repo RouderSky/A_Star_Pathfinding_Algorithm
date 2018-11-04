@@ -1,7 +1,6 @@
 # 2D A星算法C++实现 #
 ## 步骤
 1. 将寻路空间划分为`node`
-	- ![](1.png)
 	~~~
 	struct Node 
 	{
@@ -15,30 +14,37 @@
 				 		//启发值是对该节点走到终点需要代价的一个预估值；
 	};
 	~~~
-2. 从`openTable`中取出fn值最低的`nodeX`，并放入`closeTable`
-	- if nodeX == None
-		- 找不到最短路径
-	- else
-		- if nodeX == targetNode
-			- 最短路径已经找到，终止以下操作
-3. 从`nodeX`外一层筛选出满足一下条件的`nodes`
-	- 不在`closeTable`
-	- 可到达
-4. 处理`nodes`
-	- for node in nodes
-		1. 将`nodes`的父亲都指向`nodeX`
-		2. 计算gn
-		3. 计算hn
-			- 可采用**曼哈顿方法**：从当前node到targetNode的水平和垂直方格的数量总和 乘以 10
-		4. 计算fn = gn + hn
-5. 将`nodes`处理进`openTable`
-	- for node in nodes
-		- if node not in opentable
-			- 直接放进`openTable`
-		- else
-			- if node.gn < nodeInopenTable.gn
-				- 将nodeInopenTable的数据修改为node的数据
-6. 回到第二步
+	- ![](1.png)
+2. 伪代码
+	~~~
+	while(True)
+		nodeX = openTable中fn值最低的node
+		if nodeX == None
+			#找不到最短路径
+		else
+			if nodeX == targetNode
+				#最短路径已找到
+				break
+
+		//条件
+		//不在closeTable
+		//可到达
+		nodes = nodeX外一层满足以上条件的node
+
+		for node in nodes
+			#node的父亲指向nodeX
+			#计算node.gn
+			#计算node.hn
+				##可采用曼哈顿方法：从当前node到targetNode的水平和垂直方格的数量总和 乘以 10
+			node.fn = node.gn + node.hn
+
+		for node in nodes
+			if node not in openTable
+				#直接放进openTable
+			else
+				if node.gn < nodeInOpenTable.gn
+					#将nodeInopenTable的数据修改为node的数据
+	~~~
 ## 参考资料
 - [参考资料1](http://zhyt710.iteye.com/blog/739803)
 
