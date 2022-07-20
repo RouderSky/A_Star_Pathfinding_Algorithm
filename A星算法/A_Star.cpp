@@ -47,61 +47,61 @@ A_Star::~A_Star()
 {
 }
 
-void A_Star::JudgeTheTile(Position pos)
+void A_Star::JudgeTheTile(Node node)
 {
-	if (!(map[pos.row][pos.col].type == TileType::OBSTACLE ||      
-		IsInClose(pos) || 
-		pos.row < 0 || pos.col < 0 || pos.row >= row || pos.col >= col
+	if (!(map[node.row][node.col].type == TileType::OBSTACLE ||      
+		IsInClose(node) || 
+		node.row < 0 || node.col < 0 || node.row >= row || node.col >= col
 		))                                                                             //(temp.row - curPoint.row != 0 && temp.col - curPoint.col != 0) 这个条件要在他们附近有障碍物才有点用处
 	{
-		if (IsInOpen(pos))  //在Open表中
+		if (IsInOpen(node))  //在Open表中
 		{
-			if (map[pos.row][pos.col].gn > CalGn(pos))
+			if (map[node.row][node.col].gn > CalGn(node))
 			{
 				//改变P的父亲
-				map[pos.row][pos.col].parRow = curPoint.row;
-				map[pos.row][pos.col].parCol = curPoint.col;
+				map[node.row][node.col].parRow = curPoint.row;
+				map[node.row][node.col].parCol = curPoint.col;
 				//从新计算P的Fn
-				SetTileFn(pos);
+				SetTileFn(node);
 			}
 		}
 		else                 //不在Open表中
 		{
-			openTable.push_back(pos);
+			openTable.push_back(node);
 			//改变P的父亲
-			map[pos.row][pos.col].parRow = curPoint.row;
-			map[pos.row][pos.col].parCol = curPoint.col;
+			map[node.row][node.col].parRow = curPoint.row;
+			map[node.row][node.col].parCol = curPoint.col;
 			//从新计算P的Fn
-			SetTileFn(pos);
+			SetTileFn(node);
 		}
 	}
 }
 
-bool A_Star::IsInClose(Position temp)
+bool A_Star::IsInClose(Node node)
 {
 	for (int i = 0; i < closeTable.size();i++)
 	{
-		if (temp.row == closeTable[i].row && temp.col == closeTable[i].col)
+		if (node.row == closeTable[i].row && node.col == closeTable[i].col)
 			return true;
 	}
 	return false;
 }
 
-bool A_Star::IsInOpen(Position temp)
+bool A_Star::IsInOpen(Node node)
 {
 	for (int i = 0; i < openTable.size(); i++)
 	{
-		if (temp.row == openTable[i].row && temp.col == openTable[i].col)
+		if (node.row == openTable[i].row && node.col == openTable[i].col)
 			return true;
 	}
 	return false;
 }
 
-int A_Star::CalGn(Position temp)
+int A_Star::CalGn(Node node)
 {
 	//说明在对角线上
 	int gnAdd;
-	if (temp.row - curPoint.row != 0 && temp.col - curPoint.col != 0)
+	if (node.row - curPoint.row != 0 && node.col - curPoint.col != 0)
 	{
 		gnAdd = 14;
 	}
@@ -113,7 +113,7 @@ int A_Star::CalGn(Position temp)
 	return map[curPoint.row][curPoint.col].gn + gnAdd;
 }
 
-void A_Star::SetTileFn(Position temp)
+void A_Star::SetTileFn(Node temp)
 {
 	//计算gn
 	//map[temp.row][temp.col].gn += CalGn(temp);
@@ -178,8 +178,8 @@ void A_Star::StartPath()
 		int nodeIdxInOpenTableOfMinFn = 0;
 		for (int i = 1; i < openTable.size(); i++)
 		{
-			Position point = openTable[i];
-			Position pointOfMinFn = openTable[nodeIdxInOpenTableOfMinFn];
+			Node point = openTable[i];
+			Node pointOfMinFn = openTable[nodeIdxInOpenTableOfMinFn];
 			if (map[point.row][point.col].fn < map[pointOfMinFn.row][pointOfMinFn.col].fn)
 				nodeIdxInOpenTableOfMinFn = i;
 		}
@@ -194,7 +194,7 @@ void A_Star::StartPath()
 			break;
 		}
 
-		Position temp = curPoint;		//这里就是要复制
+		Node temp = curPoint;		//这里就是要复制
 
 		temp.row -= 1;
 		temp.col -= 1;
