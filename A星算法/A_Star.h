@@ -43,10 +43,12 @@ public:
 	~A_Star();
 
 	//一个二维数组（类型是Node）：A*算法需要的特殊节点地图
-	Node aStarMap[MapRow][MapCol];
+	Node map[MapRow][MapCol];
 	int row;    //记录行数
 	int col;	//记录列数
-	Position finalPoint;
+	Position startPoint;
+	Position targetPoint;
+	Position curPoint;
 
 // 	//一个二维数组（类型是int）：原型地图
 // 	int (*originMap)[MapWidth];
@@ -60,15 +62,6 @@ public:
 	//总控函数：总体运行框架
 	void StartPath();
 
-	//func：初始化函数：将原型地图转换成A*算法所需要的地图（）
-	void InitAStarMap(int a[][MapCol], int m, int n);
-
-	//func0:开始时的准备：将起点放进Open表中,把终点的坐标也找出来，方便以后Gn值的计算
-	void ReadyPath();
-
-	//func1:寻找Open表中Fn值最小的那个节点,从Open中删除，将它压进Close表中，即back出来就可以得到当前所在的格子
-	void FindMixFnPoint();
-
 	//func2：判断当前格附近的8个格子中其中一个的状态：共有3种情况，用三个 if else if 或者 嵌套的if（优先） 都可以；设其中一个点为P
 		//如果 不可行走 或者 已在Close表 中则忽略掉(可不可以行走是可以自己定义的)
 		//如果 不在Open表中 则直接添加进Open表中，并且将 P的父亲 指向 当前格，并且调用函数func3来计算P的Fn
@@ -77,10 +70,6 @@ public:
 
 	//func3:自动计算传来的格子的Fn，其中Gn的计算要以它的父节点为依据，Hn用曼哈顿算法
 	void SetTileFn(Position temp);
-
-	//func4:检测Close顶部格子的相邻8个格子
-		//依次对8个格子调用func2即可
-	void DealWithTileNearBy();
 
 	//func5：检测一个点是不是已经在Close表中
 	bool IsInClose(Position temp);

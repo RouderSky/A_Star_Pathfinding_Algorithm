@@ -12,23 +12,23 @@ int main()
 	string s2 = "0 0 0 3 3 3 0 ";
 	string s3 = "0 1 0 3 0 3 0 ";
 	string s4 = "0 0 0 3 2 3 0 ";
-	string s5 = "0 0 0 0 0 0 0";
+	string s5 = "0 0 0 3 0 0 0 ";
 
-	stringstream ss(s0 + s1 + s2 + s3 + s4 + s5);
+	stringstream input(s0 + s1 + s2 + s3 + s4 + s5);
 
-	int row;
-	int col;
+	int mapRow;
+	int mapCol;
 
-	ss >> row;
-	ss >> col;
+	input >> mapRow;
+	input >> mapCol;
 
-	int a[MapRow][MapCol] = { 0 };
+	int map[MapRow][MapCol] = { 0 };
 
-	for (int i = 0; i < row;i++)
+	for (int i = 0; i < mapRow;i++)
 	{
-		for (int j = 0; j < col;j++)
+		for (int j = 0; j < mapCol;j++)
 		{
-			ss >> a[i][j];
+			input >> map[i][j];
 		}
 	}
 
@@ -38,7 +38,7 @@ int main()
 // 					3, 3, 3, 3, 0, 0, 0,
 // 					0, 0, 0, 0, 0, 0, 0 };
 
-	A_Star test(a, row, col);
+	A_Star test(map, mapRow, mapCol);
 
 	test.StartPath();
 

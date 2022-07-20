@@ -6,113 +6,73 @@ A_Star::A_Star()
 
 }
 
-A_Star::A_Star(int a[][MapCol], int m, int n)
+A_Star::A_Star(int m[][MapCol], int r, int c)
 {
-	InitAStarMap(a, m, n);
+	row = r;
+	col = c;
+	for (int i = 0; i < row; i++)
+	{
+		for (int j = 0; j < col; j++)
+		{
+			map[i][j].parRow = -1;
+			map[i][j].parCol = -1;
+			map[i][j].fn = 0;
+			map[i][j].gn = 0;
+			map[i][j].hn = 0;
+			if (m[i][j] == 0)
+			{
+				map[i][j].type = TileType::SPACE;
+			}
+			else if (m[i][j] == 1)
+			{
+				map[i][j].type = TileType::START;
+				startPoint.row = i;
+				startPoint.col = j;
+			}
+			else if (m[i][j] == 2)
+			{
+				map[i][j].type = TileType::FINAL;
+				targetPoint.row = i;
+				targetPoint.col = j;
+			}
+			else if (m[i][j] == 3)
+			{
+				map[i][j].type = TileType::OBSTACLE;
+			}
+		}
+	}
 }
 
 A_Star::~A_Star()
 {
 }
 
-void A_Star::InitAStarMap(int a[][MapCol], int m, int n)
+void A_Star::JudgeTheTile(Position pos)
 {
-	row = m;
-	col = n;
-	for (int i = 0; i < row;i++)
+	if (!(map[pos.row][pos.col].type == TileType::OBSTACLE ||      
+		IsInClose(pos) || 
+		pos.row < 0 || pos.col < 0 || pos.row >= row || pos.col >= col
+		))                                                                             //(temp.row - curPoint.row != 0 && temp.col - curPoint.col != 0) 这个条件要在他们附近有障碍物才有点用处
 	{
-		for (int j = 0; j < col;j++)
+		if (IsInOpen(pos))  //在Open表中
 		{
-			aStarMap[i][j].parRow = -1;
-			aStarMap[i][j].parCol = -1;
-			aStarMap[i][j].fn = 0;
-			aStarMap[i][j].gn = 0;
-			aStarMap[i][j].hn = 0;
-			if (a[i][j] == 0)
-				aStarMap[i][j].type = TileType::SPACE;
-			else if (a[i][j] == 1)
-				aStarMap[i][j].type = TileType::START;
-			else if (a[i][j] == 2)
-				aStarMap[i][j].type = TileType::FINAL;
-			else if (a[i][j] == 3)
-				aStarMap[i][j].type = TileType::OBSTACLE;
-			
-		}
-	}
-}
-
-void A_Star::ReadyPath()
-{
-	Node startNode;
-	for (int i = 0; i < row; i++)
-	{
-		for (int j = 0; j < col; j++)
-		{
-			//判断是不是起点
-			if (aStarMap[i][j].type == TileType::START)
-			{
-				Position temp;
-				temp.row = i;
-				temp.col = j;
-				openTable.push_back(temp);
-			}
-
-			//判断是不是终点
-			if (aStarMap[i][j].type == TileType::FINAL)
-			{
-				finalPoint.row = i;
-				finalPoint.col = j;
-			}
-		}
-	}
-}
-
-void A_Star::FindMixFnPoint()
-{
-	//寻找fn值最小的节点
-	int mixFnNumInOpen = 0;
-	for (int i = 1; i < openTable.size(); i++)
-	{
-		//如果当前点的fn比最小要小就记录
-		if (aStarMap[openTable[i].row][openTable[i].col].fn<aStarMap[openTable[mixFnNumInOpen].row][openTable[mixFnNumInOpen].col].fn)
-		{
-			mixFnNumInOpen = i;
-		}
-	}
-
-	//压进Close表
-	closeTable.push_back(openTable[mixFnNumInOpen]);
-
-	//从Open表中删除
-	openTable.erase(openTable.begin() + mixFnNumInOpen);
-}
-
-void A_Star::JudgeTheTile(Position temp)
-{
-	if (!(aStarMap[temp.row][temp.col].type == TileType::OBSTACLE ||      
-		IsInClose(temp) || 
-		temp.row < 0 || temp.col < 0 || temp.row >= row || temp.col >= col
-		))                                                                             //(temp.row - closeTable.back().row != 0 && temp.col - closeTable.back().col != 0) 这个条件要在他们附近有障碍物才有点用处
-	{
-		if (IsInOpen(temp))  //在Open表中
-		{
-			if (aStarMap[temp.row][temp.col].gn > CalGn(temp))
+			if (map[pos.row][pos.col].gn > CalGn(pos))
 			{
 				//改变P的父亲
-				aStarMap[temp.row][temp.col].parRow = closeTable.back().row;
-				aStarMap[temp.row][temp.col].parCol = closeTable.back().col;
+				map[pos.row][pos.col].parRow = curPoint.row;
+				map[pos.row][pos.col].parCol = curPoint.col;
 				//从新计算P的Fn
-				SetTileFn(temp);
+				SetTileFn(pos);
 			}
 		}
 		else                 //不在Open表中
 		{
-			openTable.push_back(temp);
+			openTable.push_back(pos);
 			//改变P的父亲
-			aStarMap[temp.row][temp.col].parRow = closeTable.back().row;
-			aStarMap[temp.row][temp.col].parCol = closeTable.back().col;
+			map[pos.row][pos.col].parRow = curPoint.row;
+			map[pos.row][pos.col].parCol = curPoint.col;
 			//从新计算P的Fn
-			SetTileFn(temp);
+			SetTileFn(pos);
 		}
 	}
 }
@@ -141,7 +101,7 @@ int A_Star::CalGn(Position temp)
 {
 	//说明在对角线上
 	int gnAdd;
-	if (temp.row - closeTable.back().row != 0 && temp.col - closeTable.back().col != 0)
+	if (temp.row - curPoint.row != 0 && temp.col - curPoint.col != 0)
 	{
 		gnAdd = 14;
 	}
@@ -150,89 +110,54 @@ int A_Star::CalGn(Position temp)
 		gnAdd = 10;
 	}
 
-	return aStarMap[closeTable.back().row][closeTable.back().col].gn + gnAdd;
+	return map[curPoint.row][curPoint.col].gn + gnAdd;
 }
 
 void A_Star::SetTileFn(Position temp)
 {
 	//计算gn
-	aStarMap[temp.row][temp.col].gn += CalGn(temp);
+	//map[temp.row][temp.col].gn += CalGn(temp);
+	map[temp.row][temp.col].gn = CalGn(temp);
 
 	//计算hn
-	aStarMap[temp.row][temp.col].hn = abs(temp.row - finalPoint.row) + abs(temp.col - finalPoint.col);
+	map[temp.row][temp.col].hn = abs(temp.row - targetPoint.row) + abs(temp.col - targetPoint.col);
 
 	//计算fn
-	aStarMap[temp.row][temp.col].fn = aStarMap[temp.row][temp.col].gn + aStarMap[temp.row][temp.col].hn;
-}
-
-void A_Star::DealWithTileNearBy()
-{
-	Position temp = closeTable.back();
-
-	temp.row -= 1;
-	temp.col -= 1;
-	JudgeTheTile(temp);
-
-	temp.col += 1;
-	JudgeTheTile(temp);
-
-	temp.col += 1;
-	JudgeTheTile(temp);
-
-	temp.row += 1;
-	JudgeTheTile(temp);
-
-	temp.col -= 1;
-	JudgeTheTile(temp);
-
-	temp.col -= 1;
-	JudgeTheTile(temp);
-
-	temp.row += 1;
-	JudgeTheTile(temp);
-
-	temp.col += 1;
-	JudgeTheTile(temp);
-
-	temp.col += 1;
-	JudgeTheTile(temp);
+	map[temp.row][temp.col].fn = map[temp.row][temp.col].gn + map[temp.row][temp.col].hn;
 }
 
 void A_Star::OutputResult()
 {
-	vector<int> result;
-	result.resize(row*col);
+	vector<char> result;
+	result.resize(row * col);
 
 	//扫描进行范围控制
 	for (int i = 0; i < row;i++)
 	{
 		for (int j = 0; j < col;j++)
 		{
-			if (aStarMap[i][j].type == TileType::SPACE)
-				result[i*col + j] = 0;
-			else if (aStarMap[i][j].type == TileType::START)
-				result[i*col + j] = 1;
-			else if (aStarMap[i][j].type == TileType::FINAL)
-				result[i*col + j] = 2;
-			else if (aStarMap[i][j].type == TileType::OBSTACLE)
-				result[i*col + j] = 3;
+			if (map[i][j].type == TileType::SPACE)
+				result[i*col + j] = ' ';
+			else if (map[i][j].type == TileType::START)
+				result[i*col + j] = 'S';
+			else if (map[i][j].type == TileType::FINAL)
+				result[i*col + j] = 'T';
+			else if (map[i][j].type == TileType::OBSTACLE)
+				result[i*col + j] = 'B';
 		}
 	}
-
 
 	//找出那条路径
-	Position temp = closeTable.back();
-	Node node = aStarMap[temp.row][temp.col];
+	Node node = map[curPoint.row][curPoint.col];
 	while (node.type != TileType::START)
 	{
-		if (aStarMap[node.parRow][node.parCol].type!=TileType::START)
+		if (map[node.parRow][node.parCol].type!=TileType::START)
 		{
-			result[node.parRow * col + node.parCol] = 6;
+			result[node.parRow * col + node.parCol] = '*';
 		}
-		node = aStarMap[node.parRow][node.parCol];
+		node = map[node.parRow][node.parCol];
 	}
 
-	//
 	for (int i = 0; i < row; i++)
 	{
 		for (int j = 0; j < col; j++)
@@ -245,29 +170,61 @@ void A_Star::OutputResult()
 
 void A_Star::StartPath()
 {
-	//调用func0,完成准备
-	ReadyPath();
+	openTable.push_back(startPoint);
 
-	//主控逻辑
-	bool find = 0;
-	while (openTable.empty() != 1)   //只要Open表不空，都可以继续搜索
+	bool isFound = false;
+	while (openTable.empty() != true)   //只要Open表不空，都可以继续搜索
 	{
-		//调用func1，寻找fn最小的那个点
-		FindMixFnPoint();
-
-		//判断刚刚被压进Close表的格子（即当前格）是不是终点
-		if (aStarMap[closeTable.back().row][closeTable.back().col].type == TileType::FINAL)
+		int nodeIdxInOpenTableOfMinFn = 0;
+		for (int i = 1; i < openTable.size(); i++)
 		{
-			find = 1;
+			Position point = openTable[i];
+			Position pointOfMinFn = openTable[nodeIdxInOpenTableOfMinFn];
+			if (map[point.row][point.col].fn < map[pointOfMinFn.row][pointOfMinFn.col].fn)
+				nodeIdxInOpenTableOfMinFn = i;
+		}
+
+		curPoint = openTable[nodeIdxInOpenTableOfMinFn];
+		closeTable.push_back(curPoint);
+		openTable.erase(openTable.begin() + nodeIdxInOpenTableOfMinFn);
+
+		if (map[curPoint.row][curPoint.col].type == TileType::FINAL)
+		{
+			isFound = true;
 			break;
 		}
 
-		//调用func4
-		DealWithTileNearBy();
+		Position temp = curPoint;		//这里就是要复制
+
+		temp.row -= 1;
+		temp.col -= 1;
+		JudgeTheTile(temp);
+
+		temp.col += 1;
+		JudgeTheTile(temp);
+
+		temp.col += 1;
+		JudgeTheTile(temp);
+
+
+		temp.row += 1;
+		JudgeTheTile(temp);
+
+		temp.col -= 2;
+		JudgeTheTile(temp);
+
+
+		temp.row += 1;
+		JudgeTheTile(temp);
+
+		temp.col += 1;
+		JudgeTheTile(temp);
+
+		temp.col += 1;
+		JudgeTheTile(temp);
 	}
 
-	//find等于1就证明找到了那条路径
-	if (find == 1)
+	if (isFound)
 	{
 		OutputResult();
 	}
