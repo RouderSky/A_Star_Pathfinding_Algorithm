@@ -8,6 +8,7 @@ A_Star::A_Star()
 
 A_Star::A_Star(int m[][MapCol], int r, int c)
 {
+	findPathIdx = 0;
 	mapRow = r;
 	mapCol = c;
 	for (int i = 0; i < mapRow; i++)
@@ -22,6 +23,8 @@ A_Star::A_Star(int m[][MapCol], int r, int c)
 			nodesOfMap[i][j]->fn = 0;
 			nodesOfMap[i][j]->gn = 0;
 			nodesOfMap[i][j]->hn = 0;
+			nodesOfMap[i][j]->maxFindPathIdxOfVisited = 0;
+			
 			if (m[i][j] == 0)
 			{
 				nodesOfMap[i][j]->type = TileType::SPACE;
@@ -89,12 +92,7 @@ void A_Star::DealWithNearByNode(int row, int col, Node* parentNode)
 
 bool A_Star::IsVisited(Node* node)
 {
-	for (int i = 0; i < closeTable.size();i++)
-	{
-		if (node->row == closeTable[i]->row && node->col == closeTable[i]->col)
-			return true;
-	}
-	return false;
+	return node->maxFindPathIdxOfVisited == findPathIdx;
 }
 
 bool A_Star::IsInOpenTable(Node* node)
@@ -178,6 +176,7 @@ void A_Star::OutputResult()
 
 void A_Star::StartPath()
 {
+	findPathIdx += 1;
 	openTable.push_back(startNode);
 
 	bool isFound = false;
@@ -198,7 +197,7 @@ void A_Star::StartPath()
 		openTable.erase(openTable.begin() + minFnNodeIdxInOpenTable);
 
 		curNode = minFnNodeInOpenTable;
-		closeTable.push_back(curNode);
+		curNode->maxFindPathIdxOfVisited = findPathIdx;
 
 		if (curNode->type == TileType::FINAL)
 		{

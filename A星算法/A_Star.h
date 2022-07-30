@@ -30,6 +30,7 @@ public:
 	int hn;			//启发值(估算值)，启发值的计算方法有很多；这里只使用最简单的计算方法——曼哈顿算法；
 					//曼哈顿计算方法：忽略地图中的一切，当做只有该节点和目标节点,让后去计算出走到终点（不允许对角线行走，不是不给，这样做的话会很麻烦，而且对算法效率提升的作用不大）所需要的步数；
 					//启发值是对该节点走到终点需要代价的一个预估值；
+	int maxFindPathIdxOfVisited;
 };
 
 class A_Star
@@ -38,6 +39,8 @@ public:
 	A_Star();         //这个构造函数没有什么用处    
 	A_Star(int a[][MapCol], int m, int n);  //需要传进来一个二维数组（类型是int即可），代表地图（空地设置为0，起点设置为1，终点设置为2；障碍物设置为3；），其中调用func即可
 	~A_Star();
+
+	int findPathIdx;
 
 	//一个二维数组（类型是Node）：A*算法需要的特殊节点地图
 	Node* nodesOfMap[MapRow][MapCol];		//todo wht 动态分配二维数组
@@ -54,7 +57,7 @@ public:
 	vector<Node*> openTable;
 
 	//Close表（仅存储节点在二维数组中的位置）：存储被尝试过行走的点(使用vector来存储，到时直接调用back方法就可以得到当前所在的节点)
-	vector<Node*> closeTable;	//todo wht 去除这个表
+	//vector<Node*> closeTable;
 
 	//总控函数：总体运行框架
 	void StartPath();
