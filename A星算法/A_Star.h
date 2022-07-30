@@ -41,11 +41,11 @@ public:
 
 	//一个二维数组（类型是Node）：A*算法需要的特殊节点地图
 	Node map[MapRow][MapCol];	//todo wht 改成指针
-	int row;    //记录行数
-	int col;	//记录列数
-	Node startPoint;
-	Node targetPoint;
-	Node curPoint;
+	int mapRow;    //记录行数
+	int mapCol;	//记录列数
+	Node startNode;
+	Node targetNode;
+	Node curPoint;				//todo wht 记录行号就好
 
 // 	//一个二维数组（类型是int）：原型地图
 // 	int (*originMap)[MapWidth];
@@ -54,7 +54,7 @@ public:
 	vector<Node> openTable;
 
 	//Close表（仅存储节点在二维数组中的位置）：存储被尝试过行走的点(使用vector来存储，到时直接调用back方法就可以得到当前所在的节点)
-	vector<Node> closeTable;
+	vector<Node> closeTable;	//todo wht 去除这个表
 
 	//总控函数：总体运行框架
 	void StartPath();
@@ -63,16 +63,16 @@ public:
 		//如果 不可行走 或者 已在Close表 中则忽略掉(可不可以行走是可以自己定义的)
 		//如果 不在Open表中 则直接添加进Open表中，并且将 P的父亲 指向 当前格，并且调用函数func3来计算P的Fn
 		//如果 在Open表中 则判断 表中的P的Gn值 是否比 当前节点到P的Gn值 大:1.是则将Open表中 P的父亲 改成 当前节点，并调用func3来重新计算P的值
-	void JudgeTheTile(Node temp);
+	void DealWithNearByTile(Node temp);
 
 	//func3:自动计算传来的格子的Fn，其中Gn的计算要以它的父节点为依据，Hn用曼哈顿算法
-	void SetTileFn(Node temp);
+	void CalFn(Node temp);
 
 	//func5：检测一个点是不是已经在Close表中
-	bool IsInClose(Node temp);
+	bool IsVisited(Node temp);
 
 	//func6:检测一个点是不是已经在Open表中
-	bool IsInOpen(Node temp);
+	bool IsInOpenTable(Node temp);
 
 	//func7:临时计算当前格附近某点到当前格的gn值
 	int CalGn(Node temp);

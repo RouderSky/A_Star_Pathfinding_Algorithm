@@ -8,11 +8,11 @@ A_Star::A_Star()
 
 A_Star::A_Star(int m[][MapCol], int r, int c)
 {
-	row = r;
-	col = c;
-	for (int i = 0; i < row; i++)
+	mapRow = r;
+	mapCol = c;
+	for (int i = 0; i < mapRow; i++)
 	{
-		for (int j = 0; j < col; j++)
+		for (int j = 0; j < mapCol; j++)
 		{
 			map[i][j].parRow = -1;
 			map[i][j].parCol = -1;
@@ -26,14 +26,14 @@ A_Star::A_Star(int m[][MapCol], int r, int c)
 			else if (m[i][j] == 1)
 			{
 				map[i][j].type = TileType::START;
-				startPoint.row = i;
-				startPoint.col = j;
+				startNode.row = i;
+				startNode.col = j;
 			}
 			else if (m[i][j] == 2)
 			{
 				map[i][j].type = TileType::FINAL;
-				targetPoint.row = i;
-				targetPoint.col = j;
+				targetNode.row = i;
+				targetNode.col = j;
 			}
 			else if (m[i][j] == 3)
 			{
@@ -47,14 +47,14 @@ A_Star::~A_Star()
 {
 }
 
-void A_Star::JudgeTheTile(Node node)
+void A_Star::DealWithNearByTile(Node node)
 {
 	if (!(map[node.row][node.col].type == TileType::OBSTACLE ||      
-		IsInClose(node) || 
-		node.row < 0 || node.col < 0 || node.row >= row || node.col >= col
+		IsVisited(node) || 
+		node.row < 0 || node.col < 0 || node.row >= mapRow || node.col >= mapCol
 		))                                                                             //(temp.row - curPoint.row != 0 && temp.col - curPoint.col != 0) 这个条件要在他们附近有障碍物才有点用处
 	{
-		if (IsInOpen(node))  //在Open表中
+		if (IsInOpenTable(node))  //在Open表中
 		{
 			if (map[node.row][node.col].gn > CalGn(node))
 			{
@@ -62,7 +62,7 @@ void A_Star::JudgeTheTile(Node node)
 				map[node.row][node.col].parRow = curPoint.row;
 				map[node.row][node.col].parCol = curPoint.col;
 				//从新计算P的Fn
-				SetTileFn(node);
+				CalFn(node);
 			}
 		}
 		else                 //不在Open表中
@@ -72,12 +72,12 @@ void A_Star::JudgeTheTile(Node node)
 			map[node.row][node.col].parRow = curPoint.row;
 			map[node.row][node.col].parCol = curPoint.col;
 			//从新计算P的Fn
-			SetTileFn(node);
+			CalFn(node);
 		}
 	}
 }
 
-bool A_Star::IsInClose(Node node)
+bool A_Star::IsVisited(Node node)
 {
 	for (int i = 0; i < closeTable.size();i++)
 	{
@@ -87,7 +87,7 @@ bool A_Star::IsInClose(Node node)
 	return false;
 }
 
-bool A_Star::IsInOpen(Node node)
+bool A_Star::IsInOpenTable(Node node)
 {
 	for (int i = 0; i < openTable.size(); i++)
 	{
@@ -113,14 +113,14 @@ int A_Star::CalGn(Node node)
 	return map[curPoint.row][curPoint.col].gn + gnAdd;
 }
 
-void A_Star::SetTileFn(Node temp)
+void A_Star::CalFn(Node temp)
 {
 	//计算gn
 	//map[temp.row][temp.col].gn += CalGn(temp);
 	map[temp.row][temp.col].gn = CalGn(temp);
 
 	//计算hn
-	map[temp.row][temp.col].hn = abs(temp.row - targetPoint.row) + abs(temp.col - targetPoint.col);
+	map[temp.row][temp.col].hn = abs(temp.row - targetNode.row) + abs(temp.col - targetNode.col);
 
 	//计算fn
 	map[temp.row][temp.col].fn = map[temp.row][temp.col].gn + map[temp.row][temp.col].hn;
@@ -129,21 +129,21 @@ void A_Star::SetTileFn(Node temp)
 void A_Star::OutputResult()
 {
 	vector<char> result;
-	result.resize(row * col);
+	result.resize(mapRow * mapCol);
 
 	//扫描进行范围控制
-	for (int i = 0; i < row;i++)
+	for (int i = 0; i < mapRow;i++)
 	{
-		for (int j = 0; j < col;j++)
+		for (int j = 0; j < mapCol;j++)
 		{
 			if (map[i][j].type == TileType::SPACE)
-				result[i*col + j] = ' ';
+				result[i*mapCol + j] = ' ';
 			else if (map[i][j].type == TileType::START)
-				result[i*col + j] = 'S';
+				result[i*mapCol + j] = 'S';
 			else if (map[i][j].type == TileType::FINAL)
-				result[i*col + j] = 'T';
+				result[i*mapCol + j] = 'T';
 			else if (map[i][j].type == TileType::OBSTACLE)
-				result[i*col + j] = 'B';
+				result[i*mapCol + j] = 'B';
 		}
 	}
 
@@ -153,16 +153,16 @@ void A_Star::OutputResult()
 	{
 		if (map[node.parRow][node.parCol].type!=TileType::START)
 		{
-			result[node.parRow * col + node.parCol] = '*';
+			result[node.parRow * mapCol + node.parCol] = '*';
 		}
 		node = map[node.parRow][node.parCol];
 	}
 
-	for (int i = 0; i < row; i++)
+	for (int i = 0; i < mapRow; i++)
 	{
-		for (int j = 0; j < col; j++)
+		for (int j = 0; j < mapCol; j++)
 		{
-			cout << result[i*col + j] << " ";
+			cout << result[i*mapCol + j] << " ";
 		}
 		cout << endl;
 	}
@@ -170,7 +170,7 @@ void A_Star::OutputResult()
 
 void A_Star::StartPath()
 {
-	openTable.push_back(startPoint);
+	openTable.push_back(startNode);
 
 	bool isFound = false;
 	while (openTable.empty() != true)   //只要Open表不空，都可以继续搜索
@@ -198,30 +198,30 @@ void A_Star::StartPath()
 
 		temp.row -= 1;
 		temp.col -= 1;
-		JudgeTheTile(temp);
+		DealWithNearByTile(temp);
 
 		temp.col += 1;
-		JudgeTheTile(temp);
+		DealWithNearByTile(temp);
 
 		temp.col += 1;
-		JudgeTheTile(temp);
+		DealWithNearByTile(temp);
 
 
 		temp.row += 1;
-		JudgeTheTile(temp);
+		DealWithNearByTile(temp);
 
 		temp.col -= 2;
-		JudgeTheTile(temp);
+		DealWithNearByTile(temp);
 
 
 		temp.row += 1;
-		JudgeTheTile(temp);
+		DealWithNearByTile(temp);
 
 		temp.col += 1;
-		JudgeTheTile(temp);
+		DealWithNearByTile(temp);
 
 		temp.col += 1;
-		JudgeTheTile(temp);
+		DealWithNearByTile(temp);
 	}
 
 	if (isFound)
