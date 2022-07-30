@@ -14,7 +14,7 @@ A_Star::A_Star(int m[][MapCol], int r, int c)
 	{
 		for (int j = 0; j < mapCol; j++)
 		{
-			nodesOfMap[i][j] = new Node();		//todo wht 记得delete
+			nodesOfMap[i][j] = new Node();
 			nodesOfMap[i][j]->row = i;
 			nodesOfMap[i][j]->col = j;
 			nodesOfMap[i][j]->parRow = -1;
@@ -46,9 +46,16 @@ A_Star::A_Star(int m[][MapCol], int r, int c)
 
 A_Star::~A_Star()
 {
+	for (int i = 0; i < mapRow; i++)
+	{
+		for (int j = 0; j < mapCol; j++)
+		{
+			delete nodesOfMap[i][j];
+		}
+	}
 }
 
-void A_Star::DealWithNearByTile(int row, int col)
+void A_Star::DealWithNearByNode(int row, int col, Node* parentNode)
 {
 	if (row >= 0 && col >= 0 && row < mapRow && col < mapCol)
 	{
@@ -58,13 +65,13 @@ void A_Star::DealWithNearByTile(int row, int col)
 		{
 			if (IsInOpenTable(node))  //在Open表中
 			{
-				if (node->gn > CalGn(node))
+				if (parentNode->gn + CalGn(node) < node->gn)
 				{
 					//改变P的父亲
 					node->parRow = curNode->row;
 					node->parCol = curNode->col;
 					//从新计算P的Fn
-					CalFn(node);
+					UpdateFn(node);
 				}
 			}
 			else                 //不在Open表中
@@ -74,7 +81,7 @@ void A_Star::DealWithNearByTile(int row, int col)
 				node->parRow = curNode->row;
 				node->parCol = curNode->col;
 				//从新计算P的Fn
-				CalFn(node);
+				UpdateFn(node);
 			}
 		}
 	}
@@ -113,14 +120,15 @@ int A_Star::CalGn(Node* node)
 		gnAdd = 10;
 	}
 
-	return curNode->gn + gnAdd;		//todo wht 直接用curNode，怪怪的
+	return gnAdd;
 }
 
-void A_Star::CalFn(Node* temp)
+void A_Star::UpdateFn(Node* temp)
 {
+	Node* parentNode = nodesOfMap[temp->parRow][temp->parCol];
+
 	//计算gn
-	//temp->gn += CalGn(temp);				//todo wht 为什么要加上旧的gn？
-	temp->gn = CalGn(temp);
+	temp->gn = parentNode->gn + CalGn(temp);
 
 	//计算hn
 	temp->hn = abs(temp->row - targetNode->row) + abs(temp->col - targetNode->col);
@@ -151,14 +159,11 @@ void A_Star::OutputResult()
 	}
 
 	//找出那条路径
-	Node* curNode = this->curNode;	//todo wht 不要这样拿数据，通过targetNode来拿
-	while (curNode->type != TileType::START)
+	Node* tempNode = targetNode;
+	while (tempNode->type != TileType::START)
 	{
-		if (curNode->type!=TileType::START)		//todo wht 可以去掉吧？
-		{
-			result[curNode->parRow * mapCol + curNode->parCol] = '*';
-		}
-		curNode = nodesOfMap[curNode->parRow][curNode->parCol];
+		result[tempNode->parRow * mapCol + tempNode->parCol] = '*';
+		tempNode = nodesOfMap[tempNode->parRow][tempNode->parCol];
 	}
 
 	for (int i = 0; i < mapRow; i++)
@@ -201,23 +206,23 @@ void A_Star::StartPath()
 			break;
 		}
 
-		DealWithNearByTile(curNode->row - 1, curNode->col - 1);
+		DealWithNearByNode(curNode->row - 1, curNode->col - 1, curNode);
 
-		DealWithNearByTile(curNode->row - 1, curNode->col);
+		DealWithNearByNode(curNode->row - 1, curNode->col, curNode);
 
-		DealWithNearByTile(curNode->row - 1, curNode->col + 1);
-
-
-		DealWithNearByTile(curNode->row, curNode->col + 1);
-
-		DealWithNearByTile(curNode->row, curNode->col -1);
+		DealWithNearByNode(curNode->row - 1, curNode->col + 1, curNode);
 
 
-		DealWithNearByTile(curNode->row + 1, curNode->col - 1);
+		DealWithNearByNode(curNode->row, curNode->col + 1, curNode);
 
-		DealWithNearByTile(curNode->row + 1, curNode->col);
+		DealWithNearByNode(curNode->row, curNode->col -1, curNode);
 
-		DealWithNearByTile(curNode->row + 1, curNode->col + 1);
+
+		DealWithNearByNode(curNode->row + 1, curNode->col - 1, curNode);
+
+		DealWithNearByNode(curNode->row + 1, curNode->col, curNode);
+
+		DealWithNearByNode(curNode->row + 1, curNode->col + 1, curNode);
 	}
 
 	if (isFound)

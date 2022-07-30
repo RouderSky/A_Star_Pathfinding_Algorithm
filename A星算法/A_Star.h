@@ -40,14 +40,12 @@ public:
 	~A_Star();
 
 	//一个二维数组（类型是Node）：A*算法需要的特殊节点地图
-	Node* nodesOfMap[MapRow][MapCol];	//todo wht 改成指针
+	Node* nodesOfMap[MapRow][MapCol];		//todo wht 动态分配二维数组
 	int mapRow;    //记录行数
 	int mapCol;	//记录列数
 	Node* startNode;
 	Node* targetNode;
 	Node* curNode;
-	//int curRow;
-	//int curCol;
 
 // 	//一个二维数组（类型是int）：原型地图
 // 	int (*originMap)[MapWidth];
@@ -65,10 +63,10 @@ public:
 		//如果 不可行走 或者 已在Close表 中则忽略掉(可不可以行走是可以自己定义的)
 		//如果 不在Open表中 则直接添加进Open表中，并且将 P的父亲 指向 当前格，并且调用函数func3来计算P的Fn
 		//如果 在Open表中 则判断 表中的P的Gn值 是否比 当前节点到P的Gn值 大:1.是则将Open表中 P的父亲 改成 当前节点，并调用func3来重新计算P的值
-	void DealWithNearByTile(int row, int col);
+	void DealWithNearByNode(int row, int col, Node* curNode);
 
 	//func3:自动计算传来的格子的Fn，其中Gn的计算要以它的父节点为依据，Hn用曼哈顿算法
-	void CalFn(Node* temp);
+	void UpdateFn(Node* temp);
 
 	//func5：检测一个点是不是已经在Close表中
 	bool IsVisited(Node* temp);
